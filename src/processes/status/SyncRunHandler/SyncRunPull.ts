@@ -90,7 +90,8 @@ export class SyncRunPull {
   async getContext(): Promise<SpinalNode<any>> {
     const contexts = await this.graph.getChildren();
     for (const context of contexts) {
-      if (context.info.id.get() === this.config.contextId.get()) {
+      //if (context.info.id.get() === this.config.contextId.get()) {
+        if (context.info.name.get() === "NetworkInnvia") {
         // @ts-ignore
         SpinalGraphService._addNode(context);
         return context;
@@ -129,7 +130,9 @@ export class SyncRunPull {
   async createTreeIfNotExist() {
     const context = await this.getContext();
     const res = await axiosInstance.get(`VccWebService/JSon/PGS_GetPublicCarparksStallCount`);
+    const res2 = await axiosInstance.get(`VccWebService/JSon/PGS_GetStallsCurrentState`);
     const data = res.data;
+    const data2 = res2.data;
     for (const carpark of data.Carparks){
       // On cherche si le device existe déjà
       const devices = await context.findInContext(
@@ -153,6 +156,23 @@ export class SyncRunPull {
       }
       device.children.push(totalEndpointGroup);
 
+      //Create Occupation endpointgroup
+
+      const occupationEndpointGroup = new InputDataEndpointGroup("Occupations", "EndpointGroup");
+      for(const carpark2 of data2.Carparks){
+        if (carpark2.CarparkName == carpark.CarparkName){
+          for (const level of carpark2.Levels){
+            for(const stall of level.Stalls){
+              const endpoint = new InputDataEndpoint("Occupation-"+stall.StallId,
+                            stall.State=="Occupied" ,'', InputDataEndpointDataType.Boolean,
+                             InputDataEndpointType.Occupation);
+              occupationEndpointGroup.children.push(endpoint);
+            }
+          }
+        }
+      }
+      device.children.push(occupationEndpointGroup);
+
       //Create an endpointGroup for each level
       for (const level of carpark.Levels){
         const endpointGroup = new InputDataEndpointGroup(level.LevelName, "EndpointGroup");
@@ -171,7 +191,24 @@ export class SyncRunPull {
   async updateEndpointData() {
     const context = await this.getContext();
     const res = await axiosInstance.get(`VccWebService/JSon/PGS_GetPublicCarparksStallCount`);
+    const res2 = await axiosInstance.get(`VccWebService/JSon/PGS_GetStallsCurrentState`);
     const data = res.data;
+    const data2 = res2.data;
+
+    for (const carpark of data.Carparks){
+      carpark["Occupations"] = {};
+      for(const carpark2 of data2.Carparks){
+        if (carpark2.CarparkName == carpark.CarparkName){
+          for (const level of carpark2.Levels){
+            for(const stall of level.Stalls){
+              const newName = `Occupation-${stall.StallId}`;
+              carpark.Occupations[newName]= stall.State=="Occupied";
+            }
+          }
+        }
+      }
+    }
+    
     const networks = await this.nwService.getNetworks();
     const devices = await this.nwService.getDevices(networks[0])
     for (const device of devices){
@@ -184,6 +221,9 @@ export class SyncRunPull {
         let newEndpointGroupData;
         if (endpointGroupModel.name.get() === "Total"){
           newEndpointGroupData = carpark.CarparkSummary;
+        }
+        else if (endpointGroupModel.name.get() === "Occupations"){
+          newEndpointGroupData = carpark.Occupations;
         }
         else {
           newEndpointGroupData = carpark.Levels.find((level) => level.LevelName === endpointGroupModel.name.get());

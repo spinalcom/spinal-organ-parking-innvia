@@ -67,7 +67,7 @@ export default class SyncRun implements IStatus {
   async start(): Promise<number> {
     console.log('start SyncRun');
     await this.syncRunPull.init();
-    await Promise.all([this.syncRunPull.run()]);
+    //await Promise.all([this.syncRunPull.run()]);
     return 0;
   }
 

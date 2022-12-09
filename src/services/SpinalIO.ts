@@ -42,6 +42,7 @@ export default class SpinalIO {
   mapLoad: Map<string, Promise<any>>;
   mapLoadPtr: Map<number, Promise<any>>;
   private constructor(config?: SpinalConfig) {
+    
     this.mapLoadPtr = new Map();
     this.mapLoad = new Map();
     if (!config) {
@@ -49,6 +50,7 @@ export default class SpinalIO {
     } else {
       this.config = config;
     }
+    console.log("SpinalIO constructor / Protocol :",this.config.protocol)
     let connectOpt = `${this.config.protocol}://${this.config.userID}:${this.config.userPassword}@${this.config.host}`;
     if (this.config.port) connectOpt += `:${this.config.port}/`;
     this.conn = spinalCore.connect(connectOpt);

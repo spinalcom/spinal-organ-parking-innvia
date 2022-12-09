@@ -86,7 +86,7 @@ export class OrganProcess {
         const handler = this.mapStatusHandler.get(currStatus);
         currentHandler = handler;
         await handler.start();
-        this.config.client.organStatus.set(0);
+        this.config.client.organStatus.set(1);
         currentHandler = null;
       }
     }, true);
