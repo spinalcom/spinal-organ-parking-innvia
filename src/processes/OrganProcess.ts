@@ -54,7 +54,7 @@ export class OrganProcess {
     try {
       this.graph = await spinalIO.load(this.config.digitalTwinPath.get());
       //const forgeFile = await spinalIO.load(this.config.digitalTwinPath.get());
-      await this.nwService.init(this.graph, {contextName : "NetworkInnvia", contextType :"Network", networkName:"NetworkVirtualInnvia", networkType:"NetworkVirtual"});
+      await this.nwService.init(this.graph, {contextName : process?.env.CONTEXT_NAME, contextType :"Network", networkName:"NetworkVirtualInnvia", networkType:"NetworkVirtual"});
     } catch (e) {
       console.error(
         'Imposible to load the graph,',

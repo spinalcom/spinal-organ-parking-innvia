@@ -91,7 +91,7 @@ export class SyncRunPull {
     const contexts = await this.graph.getChildren();
     for (const context of contexts) {
       //if (context.info.id.get() === this.config.contextId.get()) {
-        if (context.info.name.get() === "NetworkInnvia") {
+        if (context.info.name.get() === process?.env.CONTEXT_NAME) {
         // @ts-ignore
         SpinalGraphService._addNode(context);
         return context;
@@ -238,32 +238,7 @@ export class SyncRunPull {
           console.log(deviceModel.name.get()," ",endpointGroupModel.name.get()," ",endpointModel.name.get(), " updated to ", endpointValue);
         }
       }
-      
     }
-    
-    /*for (const endpoint of this.endpoints) {
-      const node = await this.nwService.getData(endpoint);
-      //const timeseries = await this.nwService.getTimeseries(endpoint);
-      const time = new Date(); 
-      const body = {version: 1,
-                    type: "GENERIC_DECIMAL",
-                    datas: [
-                      {
-                        ts: time,
-                        message: node.currentValue.get()
-                      }
-                    ]};
-      console.log(body)
-      const streamId = this.mapping.get(node.name.get());
-      try {
-        await axiosInstance.post(
-          `rest/v1/datas/devices/${this.sandBoxDeviceId}/streams/${streamId}/values`
-          ,body);
-      }
-      catch (e) {
-        console.log(e);
-      }
-    }*/
   }
 
   async init(): Promise<void> {
