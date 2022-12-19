@@ -48,8 +48,7 @@ function detachInstance() {
     axiosInstance = null;
   }
 }
-
-newInstance('http://10.6.170.75:8080');
+newInstance(`http://${process.env?.CLIENT_IP}:8080`);
 export default axiosInstance;
 export { axiosInstance };
 export { newInstance };
