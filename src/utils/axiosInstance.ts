@@ -48,7 +48,7 @@ function detachInstance() {
     axiosInstance = null;
   }
 }
-newInstance(`http://${process.env?.CLIENT_IP}:8080`);
+newInstance(`${process.env?.CLIENT_PROTOCOL}://${process.env?.CLIENT_IP}:${process.env?.CLIENT_PORT}`);
 export default axiosInstance;
 export { axiosInstance };
 export { newInstance };
