@@ -195,10 +195,13 @@ export class SyncRunPull {
     const data = res.data;
     const data2 = res2.data;
 
+    //Pour chaque parking de la requête 1
     for (const carpark of data.Carparks){
       carpark["Occupations"] = {};
+      // On cherche le parking correspondant dans la requête 2
       for(const carpark2 of data2.Carparks){
         if (carpark2.CarparkName == carpark.CarparkName){
+          // On ajoute une nouvelle propriété Occupations au parking de la requête 1 avec les informations d'occupation
           for (const level of carpark2.Levels){
             for(const stall of level.Stalls){
               const newName = `Occupation-${stall.StallId}`;
@@ -211,13 +214,22 @@ export class SyncRunPull {
     
     const networks = await this.nwService.getNetworks();
     const devices = await this.nwService.getDevices(networks[0])
+
+    // Pour chaque device / parking
     for (const device of devices){
       const deviceModel = this.nwService.getInfo(device);
+      // On cherche la bon parking qui correspond au nom du device
       const carpark = data.Carparks.find((carpark) => carpark.CarparkName === deviceModel.name.get());
+      if(!carpark) {
+        console.error("Aucun parking dans la requête ne correspond au device. Peut être a t-il changé de nom ?")
+        continue;
+      }
+
       const endpointGroups = deviceModel.childrenIds;
       for(const endpointGroup of endpointGroups){
         const endpointGroupModel = this.nwService.getInfo(endpointGroup);
         if(!endpointGroupModel || endpointGroupModel.type.get() !== "BmsEndpointGroup") continue;
+        
         let newEndpointGroupData;
         if (endpointGroupModel.name.get() === "Total"){
           newEndpointGroupData = carpark.CarparkSummary;
@@ -225,11 +237,18 @@ export class SyncRunPull {
         else if (endpointGroupModel.name.get() === "Occupations"){
           newEndpointGroupData = carpark.Occupations;
         }
+        // Si ce n'est pas les deux plus haut alors il faut allez un niveau plus bas dans l'arborescence
         else {
           newEndpointGroupData = carpark.Levels.find((level) => level.LevelName === endpointGroupModel.name.get());
+          if(!newEndpointGroupData){
+            console.error("Aucun Level dans la requête ne correspond au nom endpointGroup précédemment enregistré. Peut être a t-il changé de nom ?");
+            console.error("EndpointGroup : ", endpointGroupModel.name.get());
+            console.error("Levels :",carpark.Levels);
+            continue;
+          }
+
           newEndpointGroupData = newEndpointGroupData.LevelCount;
         }
-        
         for(const endpoint of endpointGroupModel.childrenIds){
           const endpointModel = this.nwService.getInfo(endpoint);
           if(!endpointModel || endpointModel.type.get() !== "BmsEndpoint") continue;
